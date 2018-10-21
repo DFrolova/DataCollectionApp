@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_marginTop="10pt"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <Button
+        android:layout_width="50pt"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10pt"
+        android:layout_marginRight="10pt"
+        android:text="Collect data"
+        android:textSize="6pt"
+        android:background="@color/green"
+        android:layout_gravity="center"
+        android:fontFamily="sans-serif"
+        android:id="@+id/btnPassword">
+    </Button>
+    <Button
+        android:layout_width="50pt"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10pt"
+        android:textSize="6pt"
+        android:layout_marginRight="10pt"
+        android:layout_marginTop="10pt"
+        android:text="Authenticate"
+        android:background="@color/green"
+        android:layout_gravity="center"
+        android:fontFamily="sans-serif"
+        android:id="@+id/btnAuth">
+    </Button>
+    <Button
+        android:layout_width="50pt"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10pt"
+        android:textSize="6pt"
+        android:layout_marginRight="10pt"
+        android:layout_marginTop="10pt"
+        android:text="Free typing"
+        android:background="@color/green"
+        android:fontFamily="sans-serif"
+        android:layout_gravity="center"
+        android:id="@+id/btnTrain">
+    </Button>
+</LinearLayout>
+
