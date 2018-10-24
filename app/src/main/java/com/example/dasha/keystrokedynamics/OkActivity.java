@@ -38,14 +38,14 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
 
         tvOk = (TextView) findViewById(R.id.tvOk);
 
-        if (decision)
-            tvOk.setText(login + ", you are now authenticated!");
-        else if (correctFeatureVector)
-            tvOk.setText("You type not like " + login + "! SMS is sent to authenticate you");
-        else if (correctPassword)
-            tvOk.setText("Incorrect typing of password! SMS is sent to authenticate you");
-        else
+        if (! correctPassword)
             tvOk.setText("Incorrect password! You are not authenticated!");
+        else if (! correctFeatureVector)
+            tvOk.setText("Incorrect typing of password! SMS is sent to authenticate you");
+        else if (! decision)
+            tvOk.setText("You type not like " + login + "! SMS is sent to authenticate you");
+        else
+            tvOk.setText(login + ", you are now authenticated!");
     }
 
     @Override

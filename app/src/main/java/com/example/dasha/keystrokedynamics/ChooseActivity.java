@@ -8,9 +8,9 @@ import android.widget.Button;
 
 public class ChooseActivity extends AppCompatActivity implements View.OnClickListener {
 
-    Button btnTrain;
     Button btnAuth;
     Button btnPassword;
+    DBHelper dbHelper;
 
     String login;
 
@@ -19,16 +19,16 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose);
 
-        btnTrain = (Button) findViewById(R.id.btnTrain);
         btnAuth = (Button) findViewById(R.id.btnAuth);
         btnPassword = (Button) findViewById(R.id.btnPassword);
 
-        btnTrain.setOnClickListener(this);
         btnAuth.setOnClickListener(this);
         btnPassword.setOnClickListener(this);
 
         Intent intent = getIntent();
         login = intent.getStringExtra("login");
+
+        dbHelper = new DBHelper(this);
     }
 
     @Override
@@ -45,10 +45,6 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
                 intentAuth.putExtra("login", login);
                 startActivity(intentAuth);
                 break;
-            case R.id.btnTrain:
-                Intent intentTrain = new Intent(this, TrainActivity.class);
-                intentTrain.putExtra("login", login);
-                startActivity(intentTrain);
             default:
                 break;
         }

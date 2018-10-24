@@ -1,68 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-    <TextView
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_marginLeft="5pt"
-        android:layout_marginRight="5pt"
-        android:textSize="15pt"
-        android:layout_marginTop="3pt"
-        android:fontFamily="sans-serif"
-        android:id="@+id/tvWelcome"
-        android:gravity="center_horizontal">
-    </TextView>
-    <TextView
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_marginLeft="5pt"
-        android:layout_marginRight="5pt"
-        android:textSize="10pt"
-        android:layout_marginTop="3pt"
-        android:id="@+id/tvPassword"
-        android:text="Type password tie5.Roanl"
-        android:fontFamily="sans-serif"
-        android:gravity="center_horizontal">
-    </TextView>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/linearLayoutPassword"
+        android:id="@+id/linearLayouMain"
         android:layout_marginTop="3pt"
         android:layout_marginLeft="5pt"
-        android:layout_marginRight="5pt">
-        <EditText
-            android:layout_weight="1"
+        android:layout_marginRight="5pt"
+        android:orientation="vertical">
+        <TextView
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            android:layout_marginRight="5pt"
             android:layout_marginLeft="5pt"
+            android:layout_marginRight="5pt"
+            android:textSize="15pt"
             android:layout_marginTop="3pt"
-            android:id="@+id/etPassword"
-            android:inputType="textVisiblePassword">
-        </EditText>
+            android:fontFamily="sans-serif"
+            android:id="@+id/tvWelcome"
+            android:gravity="center_horizontal">
+        </TextView>
+        <TextView
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_marginLeft="5pt"
+            android:layout_marginRight="5pt"
+            android:textSize="10pt"
+            android:layout_marginTop="3pt"
+            android:id="@+id/tvPassword"
+            android:text="Type password tie5.Roanl"
+            android:fontFamily="sans-serif"
+            android:gravity="center_horizontal">
+        </TextView>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/linearLayoutPassword"
+            android:layout_marginTop="3pt"
+            android:layout_marginLeft="5pt"
+            android:layout_marginRight="5pt"
+            android:orientation="horizontal">
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="6pt"
+                android:fontFamily="sans-serif"
+                android:text="DONE"
+                android:id="@+id/btnDone" />
+        </LinearLayout>
         <Button
+            android:id="@+id/btnLogout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="6pt"
-            android:background="@color/green"
+            android:layout_marginTop="5dp"
+            android:layout_gravity="center_horizontal"
             android:fontFamily="sans-serif"
-            android:text="Done"
-            android:id="@+id/btnDone">
-        </Button>
+            android:text="LOG OUT" />
     </LinearLayout>
-    <Button
-        android:id="@+id/btnLogout"
-        android:layout_width="wrap_content"
+    <com.example.dasha.keystrokedynamics.MyKeyboard
+        android:id="@+id/keyboard"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="6pt"
-        android:layout_marginTop="5dp"
-        android:layout_gravity="center_horizontal"
-        android:background="@color/green"
-        android:fontFamily="sans-serif"
-        android:text="Log out">
-    </Button>
-</LinearLayout>
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true" />
+</RelativeLayout>

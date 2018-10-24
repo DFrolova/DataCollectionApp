@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -19,6 +21,8 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
     Button btnLogout;
     Button btnDone;
     Button btnReturn;
+
+    MyKeyboard keyboard;
 
     String login;
     int count = 0;
@@ -47,25 +51,42 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
         tvResult.setText("Typed " + count + " times");
         tvWelcome.setText("Welcome, " + login);
 
+        keyboard = (MyKeyboard) findViewById(R.id.keyboard);
+        etPassword.setRawInputType(InputType.TYPE_CLASS_TEXT);
+        etPassword.setTextIsSelectable(true);
+
+        InputConnection ic = etPassword.onCreateInputConnection(new EditorInfo());
+        keyboard.setInputConnection(ic);
+        keyboard.setLogin(login);
+
     }
 
     @Override
     public void onClick(View v) {
-        String password;
+        String realPassword;
+        String correctPassword = "tie5.Roanl";
+        String correctSequence = "tie5.$Roanl";
+        String realSequence;
 
         switch (v.getId()) {
             case R.id.btnDone:
                 if (TextUtils.isEmpty(etPassword.getText().toString()))
                     return;
 
-                password = etPassword.getText().toString();
+                realPassword = etPassword.getText().toString();
                 etPassword.setText("");
-                if (password.equals("tie5.Roanl")) {
-                    count += 1;
-                    tvResult.setText("Typed " + count + " times");
+                realSequence = keyboard.getCharSequence();
+
+                if (realPassword.equals(correctPassword)) {
+                    if (realSequence.equals(correctSequence)) {
+                        count += 1;
+                        tvResult.setText("Typed " + count + " times");
+                    }
+                    else
+                        tvResult.setText("Incorrect typing!\nTyped " + count + " times");
                 }
                 else
-                    tvResult.setText("Incorrect password! Retype, please\nTyped " + count + " times");
+                    tvResult.setText("Incorrect password!\nTyped " + count + " times");
                 break;
             case R.id.btnReturn:
                 Intent intentReturn = new Intent(this, ChooseActivity.class);

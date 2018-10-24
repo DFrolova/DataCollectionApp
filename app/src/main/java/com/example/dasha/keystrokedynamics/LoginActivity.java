@@ -31,7 +31,6 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
 
-    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,23 +77,12 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
                 break;
             case R.id.btnLogin:
                 if (loginArrayList.contains(login)) {
-                    // PASS
-                    /*if (login.equals("Dasha")) {
-                        intentOk = new Intent(this, OkActivity.class);
-                        intentOk.putExtra("login", login);
-                        intentOk.putExtra("decision", false);
-                        startActivity(intentOk);
-                        break;
-                    }*/
-
                     intentChoose = new Intent(this, ChooseActivity.class);
                     intentChoose.putExtra("login", login);
                     startActivity(intentChoose);
                 }
                 else
                     tvLogin.setText("No user with this login!");
-                break;
-            default:
                 break;
         }
     }

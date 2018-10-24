@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -18,9 +20,10 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
     Button btnLogout;
     Button btnDone;
 
+    MyKeyboard keyboard;
+
     String login;
 
-    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,13 +44,23 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
 
         tvWelcome.setText("Welcome, " + login);
 
+        keyboard = (MyKeyboard) findViewById(R.id.keyboard);
+        etPassword.setRawInputType(InputType.TYPE_CLASS_TEXT);
+        etPassword.setTextIsSelectable(true);
+
+        InputConnection ic = etPassword.onCreateInputConnection(new EditorInfo());
+        keyboard.setInputConnection(ic);
+        keyboard.setLogin(login);
+
     }
 
     @Override
     public void onClick(View v) {
-        String password;
+        String realPassword;
+        String correctPassword = "tie5.Roanl";
+        String correctSequence = "tie5.$Roanl";
+        String realSequence;
 
-        Intent intentWrong;
         Intent intentOk;
 
         switch (v.getId()) {
@@ -55,27 +68,19 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                 if (TextUtils.isEmpty(etPassword.getText().toString()))
                     return;
 
-                password = etPassword.getText().toString();
+                realPassword = etPassword.getText().toString();
+                etPassword.setText("");
+                realSequence = keyboard.getCharSequence();
+
+                realPassword = etPassword.getText().toString();
                 etPassword.setText("");
 
-                if (password.equals("tie5.Roanl")) {
-                    // TODO check correctness of feature vector
-                    // TODO check if not anomaly
-                    intentOk = new Intent(this, OkActivity.class);
-                    intentOk.putExtra("login", login);
-                    intentOk.putExtra("decision", true);
-                    intentOk.putExtra("correctFeatureVector", true);
-                    intentOk.putExtra("correctPassword", true);
-                    startActivity(intentOk);
-                }
-                else {
-                    intentWrong = new Intent(this, OkActivity.class);
-                    intentWrong.putExtra("login", login);
-                    intentWrong.putExtra("decision", false);
-                    intentWrong.putExtra("correctFeatureVector", false);
-                    intentWrong.putExtra("correctPassword", false);
-                    startActivity(intentWrong);
-                }
+                intentOk = new Intent(this, OkActivity.class);
+                intentOk.putExtra("login", login);
+                intentOk.putExtra("decision", true); // TODO make decision
+                intentOk.putExtra("correctFeatureVector", realSequence.equals(correctSequence));
+                intentOk.putExtra("correctPassword", realPassword.equals(correctPassword));
+                startActivity(intentOk);
                 break;
             case R.id.btnLogout:
                 Intent intentLogout = new Intent(this, LoginActivity.class);

@@ -6,42 +6,27 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
     <Button
-        android:layout_width="50pt"
+        android:layout_width="55pt"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10pt"
         android:layout_marginRight="10pt"
-        android:text="Collect data"
+        android:text="COLLECT DATA"
         android:textSize="6pt"
-        android:background="@color/green"
         android:layout_gravity="center"
         android:fontFamily="sans-serif"
         android:id="@+id/btnPassword">
     </Button>
     <Button
-        android:layout_width="50pt"
+        android:layout_width="55pt"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10pt"
         android:textSize="6pt"
         android:layout_marginRight="10pt"
-        android:layout_marginTop="10pt"
-        android:text="Authenticate"
-        android:background="@color/green"
+        android:layout_marginTop="5pt"
+        android:text="AUTHENTICATE"
         android:layout_gravity="center"
         android:fontFamily="sans-serif"
         android:id="@+id/btnAuth">
-    </Button>
-    <Button
-        android:layout_width="50pt"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10pt"
-        android:textSize="6pt"
-        android:layout_marginRight="10pt"
-        android:layout_marginTop="10pt"
-        android:text="Free typing"
-        android:background="@color/green"
-        android:fontFamily="sans-serif"
-        android:layout_gravity="center"
-        android:id="@+id/btnTrain">
     </Button>
 </LinearLayout>
 

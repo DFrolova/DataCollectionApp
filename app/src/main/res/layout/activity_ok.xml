@@ -18,9 +18,8 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Try again"
+        android:text="TRY AGAIN"
         android:layout_marginTop="6pt"
-        android:background="@color/green"
         android:fontFamily="sans-serif"
         android:layout_marginLeft="10pt"
         android:layout_marginRight="10pt"
@@ -35,8 +34,7 @@
         android:textSize="6pt"
         android:layout_marginTop="5dp"
         android:layout_gravity="center_horizontal"
-        android:background="@color/green"
         android:fontFamily="sans-serif"
-        android:text="Log out">
+        android:text="LOG OUT">
     </Button>
 </LinearLayout>
