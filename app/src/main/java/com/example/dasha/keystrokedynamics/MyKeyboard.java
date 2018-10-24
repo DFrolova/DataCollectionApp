@@ -1,9 +1,6 @@
 package com.example.dasha.keystrokedynamics;
 
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -50,8 +47,6 @@ public class MyKeyboard extends LinearLayout implements View.OnClickListener,
     SensorManager sensorManager;
     Sensor sensorGyro, sensorMagnet, sensorAccel;
     Sensor sensorLinAccel, sensorGravity;
-
-    DBHelper dbHelper;
 
     String textCode, textDown, textUp, textForFile;
     String TAG = "myLog";
@@ -264,8 +259,6 @@ public class MyKeyboard extends LinearLayout implements View.OnClickListener,
         sensorManager.registerListener(listener, sensorGravity, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(listener, sensorLinAccel, SensorManager.SENSOR_DELAY_FASTEST);
 
-        dbHelper = new DBHelper(context);
-
         sequence = "";
 
     }
@@ -291,14 +284,13 @@ public class MyKeyboard extends LinearLayout implements View.OnClickListener,
                 isUpper = false;
                 break;
             case R.id.button_shift:
-                isShifted = !isShifted;
 
-                if (isShifted) {
-                    toUpperCase();
-                    isUpper = true;
-                } else {
+                if (isUpper) {
                     toLowerCase();
                     isUpper = false;
+                } else {
+                    toUpperCase();
+                    isUpper = true;
                 }
                 break;
             default:
@@ -312,13 +304,6 @@ public class MyKeyboard extends LinearLayout implements View.OnClickListener,
         }
         textCode = value + ";";
         textForFile = textCode + textDown + textUp;
-        //INSERT ROW
-        ContentValues cv = new ContentValues();
-        cv.put("rawText", textForFile);
-        cv.put("login", login);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.insert("rawData", null, cv);
-        Log.d(TAG, "ROW raw inserted=" + textForFile);
 
         sequence += value;
         charData.add(textForFile);
@@ -433,7 +418,7 @@ public class MyKeyboard extends LinearLayout implements View.OnClickListener,
 
     public List<String> getRawData () { return charData.subList(Math.max(charData.size() - 11, 0), charData.size()); }
 
-    public void clearData () { charData.clear(); }
+    public void clearData () { charData = new ArrayList<>(); }
 
     private void toUpperCase() {
 

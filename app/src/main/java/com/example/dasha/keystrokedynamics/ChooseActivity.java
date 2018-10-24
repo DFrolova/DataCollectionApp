@@ -10,7 +10,6 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
 
     Button btnAuth;
     Button btnPassword;
-    DBHelper dbHelper;
 
     String login;
 
@@ -27,8 +26,6 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
 
         Intent intent = getIntent();
         login = intent.getStringExtra("login");
-
-        dbHelper = new DBHelper(this);
     }
 
     @Override

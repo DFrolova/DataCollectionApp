@@ -1,6 +1,11 @@
 package com.example.dasha.keystrokedynamics;
 
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
@@ -27,6 +32,7 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
     Button btnReturn;
 
     MyKeyboard keyboard;
+    DBRaw dbHelper;
 
     String login;
     int count = 0;
@@ -63,6 +69,8 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
         keyboard.setInputConnection(ic);
         keyboard.setLogin(login);
 
+        dbHelper = new DBRaw(this);
+
     }
 
     @Override
@@ -73,6 +81,8 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
         String realSequence;
         String TAG = "myLog";
 
+        SQLiteDatabase db;
+
         switch (v.getId()) {
             case R.id.btnDone:
                 if (TextUtils.isEmpty(etPassword.getText().toString()))
@@ -82,6 +92,8 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                 etPassword.setText("");
                 realSequence = keyboard.getCharSequence();
 
+                db = dbHelper.getWritableDatabase();
+
                 if (realPassword.equals(correctPassword)) {
                     if (realSequence.equals(correctSequence)) {
                         count += 1;
@@ -89,13 +101,55 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                         List<String> rawData= keyboard.getRawData();
                         keyboard.clearData();
 
+                        ContentValues cv = new ContentValues();
+                        cv.put("text", "login=" + login);
+                        db.insert("rawData", null, cv);
+                        Log.d(TAG, "INSERTED: " + "login=" + login);
+
+                        for (int i = 0; i < 11; i += 1) {
+
+                            String charSeq = rawData.get(i);
+                            cv.put("text", charSeq.toString());
+                            db.insert("rawData", null, cv);
+                        }
+
                         // TODO preproc and put into database
+
+
                     }
                     else
                         tvResult.setText("Incorrect typing!\nTyped " + count + " times");
                 }
                 else
                     tvResult.setText("Incorrect password!\nTyped " + count + " times");
+
+                if (realPassword.equals("show data")) {
+                    //READ ALL
+                    Log.d(TAG, "--- Rows in mytable: ---");
+                    Cursor c = db.query("rawData", null, null,
+                            null, null, null, null);
+
+                    if (c.moveToFirst()) {
+
+                        int idColIndex = c.getColumnIndex("id");
+                        int textColIndex = c.getColumnIndex("text");
+
+                        do {
+                            Log.d(TAG, "ID = " + c.getInt(idColIndex) +
+                                    ", text = " + c.getString(textColIndex));
+                        } while (c.moveToNext());
+                    } else
+                        Log.d(TAG, "0 rows");
+                    c.close();
+                }
+                /*if (realPassword.equals("delete data")) {
+                    //CLEAR
+                    Log.d(TAG, "--- Clear mytable: ---");
+                    // удаляем все записи
+                    int clearCount = db.delete("rawData", null, null);
+                    Log.d(TAG, "deleted rows count = " + clearCount);
+                }*/
+
                 break;
             case R.id.btnReturn:
                 Intent intentReturn = new Intent(this, ChooseActivity.class);
@@ -109,6 +163,24 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
             default:
                 break;
         }
+    }
+
+    private class DBRaw extends SQLiteOpenHelper {
+
+        public DBRaw (Context context) {
+            super(context, "Passwords", null, 1);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+
+            db.execSQL("create table rawData ("
+                    + "id integer primary key autoincrement,"
+                    + "text" + ");");
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
     }
 
 }
