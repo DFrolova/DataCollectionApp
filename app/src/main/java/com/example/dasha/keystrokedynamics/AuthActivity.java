@@ -72,9 +72,6 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                 etPassword.setText("");
                 realSequence = keyboard.getCharSequence();
 
-                realPassword = etPassword.getText().toString();
-                etPassword.setText("");
-
                 intentOk = new Intent(this, OkActivity.class);
                 intentOk.putExtra("login", login);
                 intentOk.putExtra("decision", true); // TODO make decision

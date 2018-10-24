@@ -19,7 +19,9 @@ import android.view.inputmethod.InputConnection;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import static android.content.Context.SENSOR_SERVICE;
 
@@ -39,6 +41,8 @@ public class MyKeyboard extends LinearLayout implements View.OnClickListener,
 
     private SparseArray<String> keyValues = new SparseArray<>();
     private InputConnection inputConnection;
+
+    private ArrayList<String> charData = new ArrayList<>();
 
     private boolean isShifted = false;
     private boolean isUpper = false;
@@ -311,12 +315,13 @@ public class MyKeyboard extends LinearLayout implements View.OnClickListener,
         //INSERT ROW
         ContentValues cv = new ContentValues();
         cv.put("rawText", textForFile);
+        cv.put("login", login);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         db.insert("rawData", null, cv);
         Log.d(TAG, "ROW raw inserted=" + textForFile);
 
         sequence += value;
-        Log.d(TAG, "SEQ=" + sequence);
+        charData.add(textForFile);
     }
 
     float[] rot = new float[9];
@@ -340,10 +345,6 @@ public class MyKeyboard extends LinearLayout implements View.OnClickListener,
 
                 x = event.getX();
                 y = event.getY();
-                //pressure = event.getPressure();
-                //Log.v(TAG, "Pressure = " + pressure);
-                //fingerArea = event.getSize();
-                //Log.v(TAG, "Finger area = " + fingerArea);
 
                 currentTime = Calendar.getInstance().getTimeInMillis();
                 getDeviceOrientation();
@@ -420,11 +421,19 @@ public class MyKeyboard extends LinearLayout implements View.OnClickListener,
 
     public String getCharSequence () {
 
+        String returnSeq;
         int length = sequence.length();
         if (length <= 11)
-            return sequence;
-        return sequence.substring(length - 11);
+            returnSeq = sequence;
+        else
+            returnSeq = sequence.substring(length - 11);
+        sequence = "";
+        return returnSeq;
     }
+
+    public List<String> getRawData () { return charData.subList(Math.max(charData.size() - 11, 0), charData.size()); }
+
+    public void clearData () { charData.clear(); }
 
     private void toUpperCase() {
 

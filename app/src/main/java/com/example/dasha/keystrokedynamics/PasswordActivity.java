@@ -5,12 +5,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PasswordActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -67,6 +71,7 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
         String correctPassword = "tie5.Roanl";
         String correctSequence = "tie5.$Roanl";
         String realSequence;
+        String TAG = "myLog";
 
         switch (v.getId()) {
             case R.id.btnDone:
@@ -81,6 +86,10 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                     if (realSequence.equals(correctSequence)) {
                         count += 1;
                         tvResult.setText("Typed " + count + " times");
+                        List<String> rawData= keyboard.getRawData();
+                        keyboard.clearData();
+
+                        // TODO preproc and put into database
                     }
                     else
                         tvResult.setText("Incorrect typing!\nTyped " + count + " times");
