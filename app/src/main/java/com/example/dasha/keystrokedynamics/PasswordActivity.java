@@ -81,6 +81,8 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
         String realSequence;
         String TAG = "myLog";
 
+        ArrayList<Double> preprocessedData = new ArrayList<>();
+
         SQLiteDatabase db;
 
         switch (v.getId()) {
@@ -91,6 +93,9 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                 realPassword = etPassword.getText().toString();
                 etPassword.setText("");
                 realSequence = keyboard.getCharSequence();
+
+                DataPreprocesser preprocesser = new DataPreprocesser(this, login);
+                preprocessedData = preprocesser.preprocAndReturn(keyboard.getRawData());
 
                 db = dbHelper.getWritableDatabase();
 
@@ -111,10 +116,10 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                             String charSeq = rawData.get(i);
                             cv.put("text", charSeq.toString());
                             db.insert("rawData", null, cv);
+                            Log.d(TAG, charSeq.toString());
                         }
 
                         // TODO preproc and put into database
-
 
                     }
                     else
@@ -149,6 +154,7 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                     int clearCount = db.delete("rawData", null, null);
                     Log.d(TAG, "deleted rows count = " + clearCount);
                 }*/
+
 
                 break;
             case R.id.btnReturn:

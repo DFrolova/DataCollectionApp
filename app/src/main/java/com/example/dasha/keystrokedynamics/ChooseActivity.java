@@ -40,6 +40,7 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
             case R.id.btnAuth:
                 Intent intentAuth = new Intent(this, AuthActivity.class);
                 intentAuth.putExtra("login", login);
+                intentAuth.putExtra("authOk", true);
                 startActivity(intentAuth);
                 break;
             default:
