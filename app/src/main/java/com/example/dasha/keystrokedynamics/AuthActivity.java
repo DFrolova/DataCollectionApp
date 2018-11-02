@@ -68,6 +68,9 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
         String correctSequence = "tie5.$Roanl";
         String realSequence;
 
+        double thresholdManhattan = 240;
+        double thresholdEuclidean = 27;
+
         ArrayList<Double> preprocessedData = new ArrayList<>();
 
         Intent intentOk;
@@ -87,7 +90,7 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                     intentOk.putExtra("correctPassword", true);
                     if (realSequence.equals(correctSequence)) {
                         intentOk.putExtra("correctFeatureVector", true);
-                        DataPreprocesser preprocesser = new DataPreprocesser(this, login);
+                        DataPreprocesser preprocesser = new DataPreprocesser();
                         List<String> rawData = keyboard.getRawData();
                         keyboard.clearData();
                         preprocessedData = preprocesser.preprocAndReturn(rawData);
@@ -98,10 +101,14 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                             Log.d(TAG, charSeq.toString());
                         }
 
-                        double score = countManhattanDist(preprocessedData);
-                        Log.d(TAG, "score=" + score);
-                        intentOk.putExtra("score", score);
-                        if (score < threshold)
+                        double scoreManhattan = countManhattanDist(preprocessedData);
+                        Log.d(TAG, "scoreManhattan=" + scoreManhattan);
+                        double scoreEuclidean = countEuclideanDist(preprocessedData);
+                        Log.d(TAG, "scoreEuclidean=" + scoreEuclidean);
+                        intentOk.putExtra("scoreManhattan", scoreManhattan);
+                        intentOk.putExtra("scoreEuclidean", scoreEuclidean);
+
+                        if (scoreEuclidean < thresholdEuclidean)
                             intentOk.putExtra("decision", true);
                         else
                             intentOk.putExtra("decision", false);
@@ -213,7 +220,17 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
             1.30935098e+01, 1.41466427e+01, 1.80385005e+01, 9.86863719e+00,
             1.37640837e+01, 1.35995404e+01, 1.07437191e+01, 9.66436754e+00};
 
-    double threshold = 240;
+    private double countEuclideanDist(ArrayList<Double> data) {
+        int sum = 0;
+        double centered = 0;
+        double scaled = 0;
+        for (int i = 0; i < data.size(); i++) {
+            centered = data.get(i) - meanVector[i];
+            scaled = centered / stdVector[i];
+            sum += scaled * scaled;
+        }
+        return Math.sqrt(sum);
+    }
 
     private double countManhattanDist(ArrayList<Double> data) {
         int sum = 0;

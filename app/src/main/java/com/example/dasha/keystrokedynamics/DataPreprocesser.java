@@ -2,6 +2,7 @@ package com.example.dasha.keystrokedynamics;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -11,24 +12,18 @@ import java.util.List;
 
 public class DataPreprocesser {
 
-    String login;
     String TAG = "myLog";
 
-    DBPassword dbHelper;
-    ArrayList<Double> preprocessedData;
-    SQLiteDatabase db;
+    //ArrayList<Double> preprocessedData;
 
-    public DataPreprocesser (Context context, String login) {
+    public DataPreprocesser () {}
 
-        login = login;
-        dbHelper = new DBPassword(context);
-    }
-
-    public void preprocAndInsert (List<String> rawData) {
+    /*public void preprocAndInsert (List<String> rawData, String login) {
 
         preprocessedData = preprocAndReturn(rawData);
         insertInDatabase(login, preprocessedData);
-    }
+        Log.d(TAG, "+");
+    }*/
 
     public ArrayList<Double> preprocAndReturn (List<String> rawData) {
 
@@ -145,13 +140,13 @@ public class DataPreprocesser {
         return Math.sqrt(meanOfDiffs);
     }
 
-    public void insertInDatabase (String login, ArrayList<Double> row) {
+    /*public void insertInDatabase (String login, ArrayList<Double> row) {
 
         ContentValues cv = new ContentValues();
         cv.put("login", login);
         cv.put("password", row.toString());
         db = dbHelper.getWritableDatabase();
-        db.insert("passwordData", null, cv);
+        db.insert("passwordData",null, cv);
 
     }
 
@@ -166,11 +161,44 @@ public class DataPreprocesser {
 
             db.execSQL("create table passwordData ("
                     + "id integer primary key autoincrement,"
-                    + "login,"
-                    + "password" + ");");
+                    + "login text,"
+                    + "password text" + ");");
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
     }
+
+    public void clearDatabase () {
+        db = dbHelper.getWritableDatabase();
+        //CLEAR
+        Log.d(TAG, "--- Clear database: ---");
+        // удаляем все записи
+        int clearCount = db.delete("passwordData", null, null);
+        Log.d(TAG, "deleted rows count = " + clearCount);
+    }
+
+    public void showDatabase () {
+        db = dbHelper.getWritableDatabase();
+        //READ ALL
+        Log.d(TAG, "--- Rows in passwordTable: ---");
+        Cursor c = db.query("passwordData", null, null,
+                null, null, null, null);
+
+        if (c.moveToFirst()) {
+
+            int idColIndex = c.getColumnIndex("id");
+            int loginColIndex = c.getColumnIndex("login");
+            int passwordColIndex = c.getColumnIndex("password");
+
+            do {
+                Log.d(TAG, "ID = " + c.getInt(idColIndex) +
+                        ", login = " + c.getString(loginColIndex) +
+                        ", password = " + c.getString(passwordColIndex));
+
+            } while (c.moveToNext());
+        } else
+            Log.d(TAG, "0 rows");
+        c.close();
+    } */
 }

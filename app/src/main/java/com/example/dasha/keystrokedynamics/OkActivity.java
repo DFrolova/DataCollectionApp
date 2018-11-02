@@ -5,7 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 public class OkActivity extends AppCompatActivity implements View.OnClickListener{
@@ -15,7 +14,8 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
     Button btnLogout;
 
     String login;
-    double score = 10000;
+    double scoreManhattan = 10000;
+    double scoreEuclidean = 10000;
     boolean decision;
     boolean correctPassword;
     boolean correctFeatureVector;
@@ -30,7 +30,8 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
         decision = intent.getBooleanExtra("decision", false);
         correctPassword = intent.getBooleanExtra("correctPassword", false);
         correctFeatureVector = intent.getBooleanExtra("correctFeatureVector", false);
-        score = intent.getDoubleExtra("score", 10000);
+        scoreManhattan = intent.getDoubleExtra("scoreManhattan", 10000);
+        scoreEuclidean = intent.getDoubleExtra("scoreEuclidean", 10000);
 
         btnLogout = (Button) findViewById(R.id.btnLogout);
         btnTryAgain = (Button) findViewById(R.id.btnTryAgain);
@@ -45,9 +46,11 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
         else if (! correctFeatureVector)
             tvOk.setText("Incorrect typing of password! SMS is sent to authenticate you");
         else if (! decision)
-            tvOk.setText("You type not like " + login + "! SMS is sent to authenticate you\n" + "score = " + score);
+            tvOk.setText("You type not like " + login + "! SMS is sent to authenticate you\n" +
+                    "scoreManh = " + scoreManhattan + "\nscoreEuclid = " + Math.round(scoreEuclidean));
         else
-            tvOk.setText(login + ", you are now authenticated!\n" + "score = " + score);
+            tvOk.setText(login + ", you are now authenticated!\n" + "scoreManh = "
+                    + scoreManhattan + "\nscoreEuclid = " + Math.round(scoreEuclidean));
     }
 
     @Override

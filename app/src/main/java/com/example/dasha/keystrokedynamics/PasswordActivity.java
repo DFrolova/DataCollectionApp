@@ -94,9 +94,6 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                 etPassword.setText("");
                 realSequence = keyboard.getCharSequence();
 
-                DataPreprocesser preprocesser = new DataPreprocesser(this, login);
-                preprocessedData = preprocesser.preprocAndReturn(keyboard.getRawData());
-
                 db = dbHelper.getWritableDatabase();
 
                 if (realPassword.equals(correctPassword)) {
@@ -119,7 +116,10 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                             Log.d(TAG, charSeq.toString());
                         }
 
-                        // TODO preproc and put into database
+                        DataPreprocesser preprocesser = new DataPreprocesser();
+                        //preprocesser.preprocAndInsert(rawData, login);
+
+                        //preprocesser.showDatabase();
 
                     }
                     else
@@ -128,7 +128,7 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                 else
                     tvResult.setText("Incorrect password!\nTyped " + count + " times");
 
-                if (realPassword.equals("show data")) {
+                if (realPassword.equals("show data raw")) {
                     //READ ALL
                     Log.d(TAG, "--- Rows in mytable: ---");
                     Cursor c = db.query("rawData", null, null,
@@ -142,11 +142,80 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                         do {
                             Log.d(TAG, "ID = " + c.getInt(idColIndex) +
                                     ", text = " + c.getString(textColIndex));
+
                         } while (c.moveToNext());
                     } else
                         Log.d(TAG, "0 rows");
                     c.close();
                 }
+                if (realPassword.equals("show data preproc")) {
+                    //READ ALL
+                    Log.d(TAG, "--- Rows in mytable: ---");
+                    Cursor c = db.query("passwordData", null, null,
+                            null, null, null, null);
+
+                    if (c.moveToFirst()) {
+
+                        int idColIndex = c.getColumnIndex("id");
+                        int loginColIndex = c.getColumnIndex("login");
+                        int passwordColIndex = c.getColumnIndex("password");
+
+                        do {
+                            Log.d(TAG, "ID = " + c.getInt(idColIndex) +
+                                    ", login = " + c.getString(loginColIndex) +
+                                    ", password = " + c.getString(passwordColIndex));
+
+                        } while (c.moveToNext());
+                    } else
+                        Log.d(TAG, "0 rows");
+                    c.close();
+                }
+                /*
+                if (realPassword.equals("preproc data")) {
+                    int countLogin = 0;
+
+                    DataPreprocesser preprocesser = new DataPreprocesser(this);
+                    //READ ALL
+                    Log.d(TAG, "--- Preproc data: ---");
+                    Cursor c = db.query("rawData", null, null,
+                            null, null, null, null);
+
+                    if (c.moveToFirst()) {
+
+                        int idColIndex = c.getColumnIndex("id");
+                        int textColIndex = c.getColumnIndex("text");
+                        String text;
+                        String loginInDatabase = "";
+
+                        ArrayList<String> dataForPassword = new ArrayList<>();
+
+                        do {
+                            text = c.getString(textColIndex);
+
+                            if (text.startsWith("login=")) {
+                                dataForPassword = new ArrayList<>();
+                                countLogin++;
+                                loginInDatabase = text.substring(6);
+                                Log.d(TAG, "login = " + loginInDatabase);
+
+                                for ( int i = 0; i < 11; i++ ) {
+                                    c.moveToNext();
+                                    text = c.getString(textColIndex);
+                                    Log.d(TAG, "text = " + text);
+                                    dataForPassword.add(text);
+                                }
+                                preprocesser.preprocAndInsert(dataForPassword, loginInDatabase);
+                            }
+                            //Log.d(TAG, "ID = " + c.getInt(idColIndex) +
+                                    //", text = " + text);
+
+                        } while (c.moveToNext());
+                    } else
+                        Log.d(TAG, "0 rows");
+                    Log.d(TAG, "Preproc finished");
+                    Log.d(TAG, "count login = " + countLogin);
+                    c.close();
+                } */
                 /*if (realPassword.equals("delete data")) {
                     //CLEAR
                     Log.d(TAG, "--- Clear mytable: ---");
@@ -174,7 +243,7 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
     private class DBRaw extends SQLiteOpenHelper {
 
         public DBRaw (Context context) {
-            super(context, "Passwords", null, 1);
+            super(context, "Passwords", null, 2);
         }
 
         @Override
@@ -182,7 +251,12 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
 
             db.execSQL("create table rawData ("
                     + "id integer primary key autoincrement,"
-                    + "text" + ");");
+                    + "text text" + ");");
+
+            db.execSQL("create table passwordData ("
+                    + "id integer primary key autoincrement,"
+                    + "login text,"
+                    + "password text" + ");");
         }
 
         @Override
