@@ -176,7 +176,8 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                     c.close();
                 }
 
-                /*if (realPassword.equals("preproc data")) {
+                /*
+                if (realPassword.equals("preproc data")) {
                     int countLogin = 0;
 
                     DataPreprocesser preprocesser = new DataPreprocesser();
@@ -226,16 +227,16 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                     Log.d(TAG, "Preproc finished");
                     Log.d(TAG, "count login = " + countLogin);
                     c.close();
-                } */
+                }
 
-                /*
                 if (realPassword.equals("delete data")) {
                     //CLEAR
                     Log.d(TAG, "--- Clear mytable: ---");
                     // удаляем все записи
-                    int clearCount = db.delete("passwordData", "id >= 435", null);
+                    int clearCount = db.delete("passwordData", null, null);
                     Log.d(TAG, "deleted rows count = " + clearCount);
-                }*/
+                }
+                */
 
 
                 break;

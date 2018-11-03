@@ -51,11 +51,9 @@ public class DataPreprocesser {
             xGravity.add(Double.parseDouble(myVec[8]));
             yGravity.add(Double.parseDouble(myVec[9]));
             zGravity.add(Double.parseDouble(myVec[10]));
-            holds.add(hold);
 
             // add flight time and DD time
             if (i > 0) {
-                hold = getHoldTime(myVec);
                 UD = Long.parseLong(myVec[1]) - lastUp;
                 DD = UD + hold;
                 resultFeatureVector.add(UD);
@@ -63,6 +61,9 @@ public class DataPreprocesser {
             }
 
             lastUp = Long.parseLong(myVec[16]);
+
+            hold = getHoldTime(myVec);
+            holds.add(hold);
 
         }
 
