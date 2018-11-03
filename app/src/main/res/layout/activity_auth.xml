@@ -31,7 +31,6 @@
             android:textSize="10pt"
             android:layout_marginTop="3pt"
             android:id="@+id/tvPassword"
-            android:text="Type password tie5.Roanl"
             android:fontFamily="sans-serif"
             android:gravity="center_horizontal">
         </TextView>

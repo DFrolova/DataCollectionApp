@@ -1,6 +1,10 @@
 package com.example.dasha.keystrokedynamics;
 
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
@@ -25,10 +29,11 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
     Button btnDone;
 
     MyKeyboard keyboard;
+    DBRaw dbHelper;
 
     String login;
+    String passwordTyping;
     String TAG = "myLog";
-    boolean authOk;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -37,7 +42,7 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
 
         Intent intent = getIntent();
         login = intent.getStringExtra("login");
-        authOk = intent.getBooleanExtra("authOk", false);
+        passwordTyping = intent.getStringExtra("passwordTyping");
 
         btnLogout = (Button) findViewById(R.id.btnLogout);
         btnDone = (Button) findViewById(R.id.btnDone);
@@ -50,6 +55,7 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
         tvPassword = (TextView) findViewById(R.id.tvPassword);
 
         tvWelcome.setText("Welcome, " + login);
+        tvPassword.setText("Type password tie5.Roanl");
 
         keyboard = (MyKeyboard) findViewById(R.id.keyboard);
         etPassword.setRawInputType(InputType.TYPE_CLASS_TEXT);
@@ -59,19 +65,22 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
         keyboard.setInputConnection(ic);
         keyboard.setLogin(login);
 
+        dbHelper = new DBRaw(this);
     }
 
+    @SuppressLint("NewApi")
     @Override
     public void onClick(View v) {
         String realPassword;
         String correctPassword = "tie5.Roanl";
         String correctSequence = "tie5.$Roanl";
         String realSequence;
+        String rawDataString;
 
         double thresholdManhattan = 240;
         double thresholdEuclidean = 27;
 
-        ArrayList<Double> preprocessedData = new ArrayList<>();
+        ArrayList<Double> preprocessedData;
 
         Intent intentOk;
 
@@ -87,19 +96,18 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                 intentOk.putExtra("login", login);
 
                 if (realPassword.equals(correctPassword)) {
-                    intentOk.putExtra("correctPassword", true);
                     if (realSequence.equals(correctSequence)) {
-                        intentOk.putExtra("correctFeatureVector", true);
                         DataPreprocesser preprocesser = new DataPreprocesser();
                         List<String> rawData = keyboard.getRawData();
                         keyboard.clearData();
-                        preprocessedData = preprocesser.preprocAndReturn(rawData);
 
-                        for (int i = 0; i < 11; i += 1) {
+                        rawDataString = rawData.get(0);
+                        for (int i = 1; i < rawData.size(); i++ )
+                            rawDataString = rawDataString + " " + rawData.get(i);
 
-                            String charSeq = rawData.get(i);
-                            Log.d(TAG, charSeq.toString());
-                        }
+                        intentOk.putExtra("rawData", rawDataString);
+
+                        preprocessedData = preprocesser.preproc(rawData);
 
                         double scoreManhattan = countManhattanDist(preprocessedData);
                         Log.d(TAG, "scoreManhattan=" + scoreManhattan);
@@ -107,20 +115,20 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                         Log.d(TAG, "scoreEuclidean=" + scoreEuclidean);
                         intentOk.putExtra("scoreManhattan", scoreManhattan);
                         intentOk.putExtra("scoreEuclidean", scoreEuclidean);
+                        intentOk.putExtra("prerocessedData", preprocessedData.toString());
 
                         if (scoreEuclidean < thresholdEuclidean)
                             intentOk.putExtra("decision", true);
                         else
                             intentOk.putExtra("decision", false);
 
+                        startActivity(intentOk);
                     }
                     else
-                        intentOk.putExtra("correctFeatureVector", false);
+                        tvPassword.setText("Incorrect typing!\nType password tie5.Roanl");
                 }
                 else
-                    intentOk.putExtra("correctPassword", false);
-
-                startActivity(intentOk);
+                    tvPassword.setText("Incorrect password!\nType password tie5.Roanl");
 
                 break;
             case R.id.btnLogout:

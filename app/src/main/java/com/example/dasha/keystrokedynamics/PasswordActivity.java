@@ -117,9 +117,14 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                         }
 
                         DataPreprocesser preprocesser = new DataPreprocesser();
-                        //preprocesser.preprocAndInsert(rawData, login);
 
-                        //preprocesser.showDatabase();
+                        preprocessedData = preprocesser.preproc(rawData);
+
+                        ContentValues cvPass = new ContentValues();
+                        cvPass.put("login", login);
+                        cvPass.put("password", preprocessedData.toString());
+                        db.insert("passwordData", null, cvPass);
+                        Log.d(TAG, "inserted: " + preprocessedData.toString());
 
                     }
                     else
@@ -170,11 +175,11 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                         Log.d(TAG, "0 rows");
                     c.close();
                 }
-                /*
-                if (realPassword.equals("preproc data")) {
+
+                /*if (realPassword.equals("preproc data")) {
                     int countLogin = 0;
 
-                    DataPreprocesser preprocesser = new DataPreprocesser(this);
+                    DataPreprocesser preprocesser = new DataPreprocesser();
                     //READ ALL
                     Log.d(TAG, "--- Preproc data: ---");
                     Cursor c = db.query("rawData", null, null,
@@ -182,12 +187,12 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
 
                     if (c.moveToFirst()) {
 
-                        int idColIndex = c.getColumnIndex("id");
                         int textColIndex = c.getColumnIndex("text");
                         String text;
                         String loginInDatabase = "";
 
                         ArrayList<String> dataForPassword = new ArrayList<>();
+                        ArrayList<Double> resultPassword = new ArrayList<>();
 
                         do {
                             text = c.getString(textColIndex);
@@ -204,7 +209,13 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                                     Log.d(TAG, "text = " + text);
                                     dataForPassword.add(text);
                                 }
-                                preprocesser.preprocAndInsert(dataForPassword, loginInDatabase);
+                                resultPassword = preprocesser.preproc(dataForPassword);
+
+                                ContentValues cv = new ContentValues();
+                                cv.put("login", loginInDatabase);
+                                cv.put("password", resultPassword.toString());
+                                db.insert("passwordData", null, cv);
+                                Log.d(TAG, "inserted: " + resultPassword.toString());
                             }
                             //Log.d(TAG, "ID = " + c.getInt(idColIndex) +
                                     //", text = " + text);
@@ -216,11 +227,13 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                     Log.d(TAG, "count login = " + countLogin);
                     c.close();
                 } */
-                /*if (realPassword.equals("delete data")) {
+
+                /*
+                if (realPassword.equals("delete data")) {
                     //CLEAR
                     Log.d(TAG, "--- Clear mytable: ---");
                     // удаляем все записи
-                    int clearCount = db.delete("rawData", null, null);
+                    int clearCount = db.delete("passwordData", "id >= 435", null);
                     Log.d(TAG, "deleted rows count = " + clearCount);
                 }*/
 
@@ -238,29 +251,6 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
             default:
                 break;
         }
-    }
-
-    private class DBRaw extends SQLiteOpenHelper {
-
-        public DBRaw (Context context) {
-            super(context, "Passwords", null, 2);
-        }
-
-        @Override
-        public void onCreate(SQLiteDatabase db) {
-
-            db.execSQL("create table rawData ("
-                    + "id integer primary key autoincrement,"
-                    + "text text" + ");");
-
-            db.execSQL("create table passwordData ("
-                    + "id integer primary key autoincrement,"
-                    + "login text,"
-                    + "password text" + ");");
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
     }
 
 }

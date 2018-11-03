@@ -1,8 +1,11 @@
 package com.example.dasha.keystrokedynamics;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -10,15 +13,22 @@ import android.widget.TextView;
 public class OkActivity extends AppCompatActivity implements View.OnClickListener{
 
     TextView tvOk;
-    Button btnTryAgain;
-    Button btnLogout;
+    TextView tvQuestion;
+    TextView tvScores;
+    Button btnYes;
+    Button btnNo;
+
+    DBRaw dbHelper;
 
     String login;
+    String preprocessedData;
+    String TAG = "myLog";
+    String rawDataString;
     double scoreManhattan = 10000;
     double scoreEuclidean = 10000;
     boolean decision;
-    boolean correctPassword;
-    boolean correctFeatureVector;
+
+    String[] rawData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,48 +37,66 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
 
         Intent intent = getIntent();
         login = intent.getStringExtra("login");
+        Log.d(TAG, "login = " + login);
+        preprocessedData = intent.getStringExtra("prerocessedData");
+        Log.d(TAG, "prerocessedData = " + preprocessedData);
+        rawDataString = intent.getStringExtra("rawData");
         decision = intent.getBooleanExtra("decision", false);
-        correctPassword = intent.getBooleanExtra("correctPassword", false);
-        correctFeatureVector = intent.getBooleanExtra("correctFeatureVector", false);
         scoreManhattan = intent.getDoubleExtra("scoreManhattan", 10000);
         scoreEuclidean = intent.getDoubleExtra("scoreEuclidean", 10000);
 
-        btnLogout = (Button) findViewById(R.id.btnLogout);
-        btnTryAgain = (Button) findViewById(R.id.btnTryAgain);
+        btnYes = (Button) findViewById(R.id.btnYes);
+        btnNo = (Button) findViewById(R.id.btnNo);
 
-        btnLogout.setOnClickListener(this);
-        btnTryAgain.setOnClickListener(this);
+        btnYes.setOnClickListener(this);
+        btnNo.setOnClickListener(this);
+
+        dbHelper = new DBRaw(this);
 
         tvOk = (TextView) findViewById(R.id.tvOk);
+        tvQuestion = (TextView) findViewById(R.id.tvQuestion);
+        tvScores = (TextView) findViewById(R.id.tvScores);
 
-        if (! correctPassword)
-            tvOk.setText("Incorrect password! You are not authenticated!");
-        else if (! correctFeatureVector)
-            tvOk.setText("Incorrect typing of password! SMS is sent to authenticate you");
-        else if (! decision)
-            tvOk.setText("You type not like " + login + "! SMS is sent to authenticate you\n" +
-                    "scoreManh = " + scoreManhattan + "\nscoreEuclid = " + Math.round(scoreEuclidean));
+        tvQuestion.setText("Was it " + login + "?");
+
+        if (! decision)
+            tvOk.setText("You type not like " + login + "! SMS is sent to authenticate you");
         else
-            tvOk.setText(login + ", you are now authenticated!\n" + "scoreManh = "
-                    + scoreManhattan + "\nscoreEuclid = " + Math.round(scoreEuclidean));
+            tvOk.setText(login + ", you are now authenticated!");
+        tvScores.setText("scoreManh = " + scoreManhattan + "\nscoreEuclid = " + Math.round(scoreEuclidean));
     }
 
     @Override
     public void onClick(View v) {
 
-        switch (v.getId()) {
-            case R.id.btnTryAgain:
-                Intent intentAuth = new Intent(this, AuthActivity.class);
-                intentAuth.putExtra("login", login);
-                intentAuth.putExtra("authOk", false);
-                startActivity(intentAuth);
-                break;
-            case R.id.btnLogout:
-                Intent intentLogout = new Intent(this, LoginActivity.class);
-                startActivity(intentLogout);
-                break;
-            default:
-                break;
+        if (v.getId() == R.id.btnYes) {
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+            // insert to rawData table
+            ContentValues cv = new ContentValues();
+            cv.put("text", "login=" + login);
+            db.insert("rawData", null, cv);
+            Log.d(TAG, "INSERTED: " + "login=" + login);
+
+            rawData = rawDataString.split(" ");
+            for (int i = 0; i < 11; i += 1) {
+
+                String charSeq = rawData[i];
+                cv.put("text", charSeq.toString());
+                db.insert("rawData", null, cv);
+                Log.d(TAG, charSeq.toString());
+            }
+
+            //insert to passwordData table
+            ContentValues cvPass = new ContentValues();
+            cvPass.put("login", login);
+            cvPass.put("password", preprocessedData);
+            db.insert("passwordData", null, cvPass);
+            Log.d(TAG, "inserted: " + preprocessedData);
         }
+
+        Intent intentAuth = new Intent(this, AuthActivity.class);
+        intentAuth.putExtra("login", login);
+        startActivity(intentAuth);
     }
 }
