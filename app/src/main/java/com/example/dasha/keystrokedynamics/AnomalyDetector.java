@@ -6,24 +6,25 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class AnomalyDetector {
 
-    double[] meanVector;
-    double[] stdVector;
+    private double[] meanVector;
+    private double[] stdVector;
 
-    DBRaw dbHelper;
-    SQLiteDatabase db;
-    Cursor c;
+    private DBRaw dbHelper;
+    private SQLiteDatabase db;
+    private Cursor c;
 
-    String login;
-    String TAG = "myLog";
+    private String login;
+    private String TAG = "myLog";
 
     public AnomalyDetector (String login, Context context) {
         this.login = login;
         dbHelper = new DBRaw(context);
         this.meanVector = calculateMeanVector();
-        show(meanVector);
+        //show(meanVector);
         this.stdVector = calculateStdVector();
         //show(stdVector);
     }
@@ -35,6 +36,19 @@ public class AnomalyDetector {
         double scaled = 0;
         for (int i = 0; i < data.size(); i++) {
             centered = data.get(i) - meanVector[i];
+            scaled = centered / stdVector[i];
+            sum += Math.abs(scaled);
+        }
+        return sum;
+    }
+
+    public double countManhattanDistance (double[] data) {
+
+        int sum = 0;
+        double centered = 0;
+        double scaled = 0;
+        for (int i = 0; i < data.length; i++) {
+            centered = data[i] - meanVector[i];
             scaled = centered / stdVector[i];
             sum += Math.abs(scaled);
         }
@@ -54,9 +68,340 @@ public class AnomalyDetector {
         return Math.sqrt(sum);
     }
 
-    public double countLocalOutlierFactor () {
+    public double countEuclideanDistance (double[] data) {
 
-        return 0;
+        int sum = 0;
+        double centered = 0;
+        double scaled = 0;
+        for (int i = 0; i < data.length; i++) {
+            centered = data[i] - meanVector[i];
+            scaled = centered / stdVector[i];
+            sum += scaled * scaled;
+        }
+        return Math.sqrt(sum);
+    }
+
+    private double countEuclideanDistance (double[] array1, ArrayList<Double> array2) {
+        if (array1.length != array2.size())
+            Log.d(TAG, "Different lengths!");
+        int sum = 0;
+        double difference;
+        for (int i = 0; i < array1.length; i++ ) {
+            difference = array1[i] - array2.get(i);
+            sum += difference * difference;
+        }
+        return Math.sqrt(sum);
+    }
+
+    private double countEuclideanDistance (double[] array1, double[] array2) {
+        if (array1.length != array2.length)
+            Log.d(TAG, "Different lengths!");
+        int sum = 0;
+        double difference;
+        for (int i = 0; i < array1.length; i++ ) {
+            difference = array1[i] - array2[i];
+            sum += difference * difference;
+        }
+        return Math.sqrt(sum);
+    }
+
+    public double countLocalOutlierFactor (ArrayList<Double> data) {
+        int kNeighbours = 3;
+        // metric = Euclidean
+
+        db = dbHelper.getWritableDatabase();
+        String[] columns = new String[] {"password"};
+        String selection = "login = ?";
+        String[] selectionArgs = new String[] { login };
+        c = db.query("passwordData", columns, selection,
+                selectionArgs, null, null, null);
+
+        double[] result;
+        double LOF = 1000;
+
+        // count self density and find neighbours
+        if (c != null) {
+            String passwordVector;
+            double value;
+            double min1 = 1000000;
+            double min2 = 1000000;
+            double min3 = 1000000;
+            double[] resultMin1 = null;
+            double[] resultMin2 = null;
+            double[] resultMin3 = null;
+
+            if (c.moveToFirst()) {
+                int passwordColIndex = c.getColumnIndex("password");
+
+                do {
+                    passwordVector = c.getString(passwordColIndex);
+                    result = fromString(passwordVector);
+                    value = countEuclideanDistance(result, data);
+                    if (value < min3) {
+                        if (value < min2) {
+                            if (value < min1) {
+                                min3 = min2;
+                                min2 = min1;
+                                min1 = value;
+
+                                resultMin3 = resultMin2;
+                                resultMin2 = resultMin1;
+                                resultMin1 = result;
+                            }
+                            min3 = min2;
+                            min2 = value;
+
+                            resultMin3 = resultMin2;
+                            resultMin2 = result;
+                        }
+                        min3 = value;
+
+                        resultMin3 = result;
+                    }
+                } while (c.moveToNext());
+
+                Log.d(TAG, "min1=" + min1);
+                Log.d(TAG, "min2=" + min2);
+                Log.d(TAG, "min3=" + min3);
+
+                Log.d(TAG, "VECmin1=" + resultMin1);
+                Log.d(TAG, "VECmin2=" + resultMin2);
+                Log.d(TAG, "VECmin3=" + resultMin3);
+
+
+                double selfDensity = (double) kNeighbours / (min1 + min2 + min3);
+
+                Log.d(TAG, "selfDensity" + selfDensity);
+
+                double density1 = 0;
+                double density2 = 0;
+                double density3 = 0;
+
+                //count densities of neighbours
+                c = db.query("passwordData", columns, selection,
+                        selectionArgs, null, null, null);
+
+                ArrayList<Double> values1 = new ArrayList<>();
+                ArrayList<Double> values2 = new ArrayList<>();
+                ArrayList<Double> values3 = new ArrayList<>();
+
+                if (c.moveToFirst()) {
+                    passwordColIndex = c.getColumnIndex("password");
+
+                    double value1;
+                    double value2;
+                    double value3;
+
+                    do {
+                        passwordVector = c.getString(passwordColIndex);
+                        result = fromString(passwordVector);
+
+                        value1 = countEuclideanDistance(result, resultMin1);
+                        value2 = countEuclideanDistance(result, resultMin2);
+                        value3 = countEuclideanDistance(result, resultMin3);
+
+                        values1.add(value1);
+                        values2.add(value2);
+                        values3.add(value3);
+
+                    } while (c.moveToNext());
+                }
+
+                //there would be 0 at the first place (distance with self)
+                Collections.sort(values1);
+                Collections.sort(values2);
+                Collections.sort(values3);
+
+                density1 = (double) kNeighbours / (values1.get(1) + values1.get(2) + values1.get(3));
+                density2 = (double) kNeighbours / (values2.get(1) + values2.get(2) + values2.get(3));
+                density3 = (double) kNeighbours / (values3.get(1) + values3.get(2) + values3.get(3));
+
+                LOF = (density1 + density2 + density3) / (double) kNeighbours / selfDensity;
+                Log.d(TAG, "LOF=" + LOF);
+
+            }
+            c.close();
+        } else
+            Log.d(TAG, "Cursor is null");
+        return LOF;
+    }
+
+    public double countLocalOutlierFactor (double[] data) {
+        int kNeighbours = 3;
+        // metric = Euclidean
+
+        db = dbHelper.getWritableDatabase();
+        String[] columns = new String[] {"password"};
+        String selection = "login = ?";
+        String[] selectionArgs = new String[] { login };
+        c = db.query("passwordData", columns, selection,
+                selectionArgs, null, null, null);
+
+        double[] result;
+        double LOF = 1000;
+
+        // count self density and find neighbours
+        if (c != null) {
+            String passwordVector;
+            double value;
+            double min1 = 1000000;
+            double min2 = 1000000;
+            double min3 = 1000000;
+            double[] resultMin1 = null;
+            double[] resultMin2 = null;
+            double[] resultMin3 = null;
+
+            if (c.moveToFirst()) {
+                int passwordColIndex = c.getColumnIndex("password");
+
+                do {
+                    passwordVector = c.getString(passwordColIndex);
+                    result = fromString(passwordVector);
+                    value = countEuclideanDistance(result, data);
+                    if (value < min3) {
+                        if (value < min2) {
+                            if (value < min1) {
+                                min3 = min2;
+                                min2 = min1;
+                                min1 = value;
+
+                                resultMin3 = resultMin2;
+                                resultMin2 = resultMin1;
+                                resultMin1 = result;
+                            }
+                            min3 = min2;
+                            min2 = value;
+
+                            resultMin3 = resultMin2;
+                            resultMin2 = result;
+                        }
+                        min3 = value;
+
+                        resultMin3 = result;
+                    }
+                } while (c.moveToNext());
+
+                double selfDensity = (double) kNeighbours / (min1 + min2 + min3);
+
+                double sumOfOtherDensities = 0;
+
+                //count densities of neighbours
+                c = db.query("passwordData", columns, selection,
+                        selectionArgs, null, null, null);
+
+                ArrayList<Double> values1 = new ArrayList<>();
+                ArrayList<Double> values2 = new ArrayList<>();
+                ArrayList<Double> values3 = new ArrayList<>();
+
+                if (c.moveToFirst()) {
+                    passwordColIndex = c.getColumnIndex("password");
+
+                    double value1;
+                    double value2;
+                    double value3;
+
+                    do {
+                        passwordVector = c.getString(passwordColIndex);
+                        result = fromString(passwordVector);
+
+                        value1 = countEuclideanDistance(result, resultMin1);
+                        value2 = countEuclideanDistance(result, resultMin2);
+                        value3 = countEuclideanDistance(result, resultMin3);
+
+                        values1.add(value1);
+                        values2.add(value2);
+                        values3.add(value3);
+
+                    } while (c.moveToNext());
+                }
+
+                //there would be 0 at the first place (distance with self)
+                Collections.sort(values1);
+                Collections.sort(values2);
+                Collections.sort(values3);
+
+                for (int i = 1; i <= kNeighbours; i++)
+                    sumOfOtherDensities = sumOfOtherDensities + values1.get(i) + values2.get(i) + values3.get(i);
+
+                LOF = sumOfOtherDensities / (double) kNeighbours / selfDensity;
+
+            }
+            c.close();
+        } else
+            Log.d(TAG, "Cursor is null");
+        return LOF;
+    }
+
+    public double countThresholdEuclidean(int percentile) {
+        db = dbHelper.getWritableDatabase();
+        String[] columns = new String[] {"password"};
+        String selection = "login = ?";
+        String[] selectionArgs = new String[] { login };
+        c = db.query("passwordData", columns, selection,
+                selectionArgs, null, null, null);
+
+        double threshold = 1000000;
+        double[] result;
+
+        if (c != null) {
+            String passwordVector;
+            ArrayList<Double> values = new ArrayList<>();
+
+            if (c.moveToFirst()) {
+                int passwordColIndex = c.getColumnIndex("password");
+
+                do {
+                    passwordVector = c.getString(passwordColIndex);
+                    result = fromString(passwordVector);
+                    values.add(countEuclideanDistance(result));
+                } while (c.moveToNext());
+                threshold = Percentile(values, 100 - percentile);
+            }
+            c.close();
+        } else
+            Log.d(TAG, "Cursor is null");
+        return threshold;
+    }
+
+    public double countThresholdEuclidean() { return countThresholdEuclidean(10); }
+
+    public double countThresholdManhattan(int percentile) {
+        db = dbHelper.getWritableDatabase();
+        String[] columns = new String[] {"password"};
+        String selection = "login = ?";
+        String[] selectionArgs = new String[] { login };
+        c = db.query("passwordData", columns, selection,
+                selectionArgs, null, null, null);
+
+        double threshold = 1000000;
+        double[] result;
+
+        if (c != null) {
+            String passwordVector;
+            ArrayList<Double> values = new ArrayList<>();
+
+            if (c.moveToFirst()) {
+                int passwordColIndex = c.getColumnIndex("password");
+
+                do {
+                    passwordVector = c.getString(passwordColIndex);
+                    result = fromString(passwordVector);
+                    values.add(countManhattanDistance(result));
+                } while (c.moveToNext());
+                threshold = Percentile(values, 100 - percentile);
+            }
+            c.close();
+        } else
+            Log.d(TAG, "Cursor is null");
+        return threshold;
+    }
+
+    public double countThresholdManhattan() { return countThresholdManhattan(10); }
+
+    private double Percentile(ArrayList<Double> values, double percentile) {
+        Collections.sort(values);
+        int index = (int)Math.ceil(((double) percentile / (double) 100) * (double) values.size());
+        return values.get(index-1);
     }
 
     private double[] calculateMeanVector() {

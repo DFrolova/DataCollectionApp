@@ -68,7 +68,6 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
         dbHelper = new DBRaw(this);
     }
 
-    @SuppressLint("NewApi")
     @Override
     public void onClick(View v) {
         String realPassword;
@@ -76,9 +75,6 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
         String correctSequence = "tie5.$Roanl";
         String realSequence;
         String rawDataString;
-
-        double thresholdManhattan = 240;
-        double thresholdEuclidean = 27;
 
         ArrayList<Double> preprocessedData;
 
@@ -111,16 +107,24 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
 
                         AnomalyDetector detector = new AnomalyDetector(login, this);
 
+                        double thresholdManhattan = detector.countThresholdManhattan();
+                        double thresholdEuclidean = detector.countThresholdEuclidean();
+
+                        Log.d(TAG, "ThresManh=" + thresholdManhattan);
+                        Log.d(TAG, "ThresEuclid=" + thresholdEuclidean);
+
                         double scoreManhattan = detector.countManhattanDistance(preprocessedData);
                         Log.d(TAG, "scoreManhattan=" + scoreManhattan);
                         double scoreEuclidean = detector.countEuclideanDistance(preprocessedData);
                         Log.d(TAG, "scoreEuclidean=" + scoreEuclidean);
+                        double scoreLOF = detector.countLocalOutlierFactor(preprocessedData);
+                        Log.d(TAG, "scoreLOF = " + scoreLOF);
 
                         intentOk.putExtra("scoreManhattan", scoreManhattan);
                         intentOk.putExtra("scoreEuclidean", scoreEuclidean);
                         intentOk.putExtra("prerocessedData", preprocessedData.toString());
 
-                        if (scoreEuclidean < thresholdEuclidean)
+                        if (scoreManhattan < thresholdManhattan)
                             intentOk.putExtra("decision", true);
                         else
                             intentOk.putExtra("decision", false);

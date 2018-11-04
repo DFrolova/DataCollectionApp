@@ -76,7 +76,6 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
             ContentValues cv = new ContentValues();
             cv.put("text", "login=" + login);
             db.insert("rawData", null, cv);
-            Log.d(TAG, "INSERTED: " + "login=" + login);
 
             rawData = rawDataString.split(" ");
             for (int i = 0; i < 11; i += 1) {
@@ -84,7 +83,6 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
                 String charSeq = rawData[i];
                 cv.put("text", charSeq.toString());
                 db.insert("rawData", null, cv);
-                Log.d(TAG, charSeq.toString());
             }
 
             //insert to passwordData table
@@ -92,7 +90,6 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
             cvPass.put("login", login);
             cvPass.put("password", preprocessedData);
             db.insert("passwordData", null, cvPass);
-            Log.d(TAG, "inserted: " + preprocessedData);
         }
 
         Intent intentAuth = new Intent(this, AuthActivity.class);
