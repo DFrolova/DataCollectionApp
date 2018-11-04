@@ -105,37 +105,12 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
 
                         preprocessedData = preprocesser.preproc(rawData);
 
+                        intentOk.putExtra("prerocessedData", preprocessedData.toString());
+
                         AnomalyDetector detector = new AnomalyDetector(login, this);
 
-                        double thresholdManhattan = detector.countThresholdManhattan();
-                        double thresholdEuclidean = detector.countThresholdEuclidean();
-                        double thresholdLOF = detector.countThresholdLOF();
-
-                        double scoreManhattan = detector.countManhattanDistance(preprocessedData);
-                        Log.d(TAG, "ThresManh=" + thresholdManhattan);
-                        Log.d(TAG, "scoreManhattan=" + scoreManhattan);
-                        double scoreEuclidean = detector.countEuclideanDistance(preprocessedData);
-                        Log.d(TAG, "ThresEuclid=" + thresholdEuclidean);
-                        Log.d(TAG, "scoreEuclidean=" + scoreEuclidean);
-                        double scoreLOF = detector.countLocalOutlierFactor(preprocessedData);
-                        Log.d(TAG, "thresLOF=" + thresholdLOF);
-                        Log.d(TAG, "scoreLOF = " + scoreLOF);
-
-                        boolean trueEuclidean = scoreEuclidean < thresholdEuclidean;
-                        boolean trueManhattan = scoreManhattan < thresholdManhattan;
-                        boolean trueLOF = scoreLOF < thresholdLOF;
-
-                        int sum = 0;
-                        sum += trueEuclidean ? 1 : 0;
-                        sum += trueManhattan ? 1 : 0;
-                        sum += trueLOF ? 1 : 0;
-
-                        Log.d(TAG, "SUM = " + sum);
-
-                        if (sum >= 2)
-                            intentOk.putExtra("decision", true);
-                        else
-                            intentOk.putExtra("decision", false);
+                        intentOk.putExtra("decision", detector.makeDecision(preprocessedData));
+                        intentOk.putExtra("scores", detector.returnScores());
 
                         tvPassword.setText("Type password tie5.Roanl");
                         startActivity(intentOk);

@@ -1,10 +1,12 @@
 package com.example.dasha.keystrokedynamics;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -13,23 +15,93 @@ public class AnomalyDetector {
     private double[] meanVector;
     private double[] stdVector;
 
+    private int numberOfRows;
+    private double thresholdLOF;
+    private double thresholdEuclidean;
+    private double thresholdManhattan;
+
+    private double scoreManhattan;
+    private double scoreEuclidean;
+    private double scoreLOF;
+
     private DBRaw dbHelper;
     private SQLiteDatabase db;
     private Cursor c;
+
+    private Context context;
+
+    SharedPreferences sharedPref;
+    SharedPreferences.Editor editor;
 
     private String login;
     private String TAG = "myLog";
 
     public AnomalyDetector (String login, Context context) {
         this.login = login;
+        this.context = context;
         dbHelper = new DBRaw(context);
         this.meanVector = calculateMeanVector();
         //show(meanVector);
         this.stdVector = calculateStdVector();
         //show(stdVector);
+        Log.d(TAG, "numberForThreshold=" + getNumberForThreshold());
+
     }
 
-    public double countManhattanDistance (ArrayList<Double> data) {
+    public boolean makeDecision (ArrayList<Double> data) {
+        if (numberOfRows - getNumberForThreshold() > 5) {
+            thresholdLOF = countThresholdLOF();
+            thresholdEuclidean = countThresholdEuclidean();
+            thresholdManhattan = countThresholdManhattan();
+
+            setThreshold("Euclidean", thresholdEuclidean);
+            setThreshold("Manhattan", thresholdManhattan);
+            setThreshold("LOF", thresholdLOF);
+
+            setNumberForThreshold(numberOfRows);
+
+        }
+        else {
+            thresholdManhattan = getThreshold("Manhattan");
+            thresholdEuclidean = getThreshold("Euclidean");
+            thresholdLOF = getThreshold("LOF");
+        }
+
+        scoreManhattan = countManhattanDistance(data);
+        Log.d(TAG, "ThresManh=" + thresholdManhattan);
+        Log.d(TAG, "scoreManhattan=" + scoreManhattan);
+        scoreEuclidean = countEuclideanDistance(data);
+        Log.d(TAG, "ThresEuclid=" + thresholdEuclidean);
+        Log.d(TAG, "scoreEuclidean=" + scoreEuclidean);
+        scoreLOF = countLocalOutlierFactor(data);
+        Log.d(TAG, "thresLOF=" + thresholdLOF);
+        Log.d(TAG, "scoreLOF = " + scoreLOF);
+
+        boolean trueEuclidean = scoreEuclidean < thresholdEuclidean;
+        boolean trueManhattan = scoreManhattan < thresholdManhattan;
+        boolean trueLOF = scoreLOF < thresholdLOF;
+
+        int sum = 0;
+        sum += trueEuclidean ? 1 : 0;
+        sum += trueManhattan ? 1 : 0;
+        sum += trueLOF ? 1 : 0;
+
+        Log.d(TAG, "SUM = " + sum);
+
+        return sum >= 2;
+    }
+
+    public String returnScores () {
+        return "Score / Threshold\nManh: " + new DecimalFormat("##.##").format(scoreManhattan) +
+                " / " + new DecimalFormat("##.##").format(thresholdManhattan) +
+                "\nEuclid: " + new DecimalFormat("##.##").format(scoreEuclidean) +
+                " / " + new DecimalFormat("##.##").format(thresholdEuclidean) +
+                "\nLOF: " + new DecimalFormat("##.##").format(scoreLOF) +
+                " / " + new DecimalFormat("##.##").format(thresholdLOF);
+
+    }
+
+    private double countManhattanDistance (ArrayList<Double> data) {
 
         int sum = 0;
         double centered = 0;
@@ -42,7 +114,7 @@ public class AnomalyDetector {
         return sum;
     }
 
-    public double countManhattanDistance (double[] data) {
+    private double countManhattanDistance (double[] data) {
 
         int sum = 0;
         double centered = 0;
@@ -55,7 +127,7 @@ public class AnomalyDetector {
         return sum;
     }
 
-    public double countEuclideanDistance (ArrayList<Double> data) {
+    private double countEuclideanDistance (ArrayList<Double> data) {
 
         int sum = 0;
         double centered = 0;
@@ -66,6 +138,36 @@ public class AnomalyDetector {
             sum += scaled * scaled;
         }
         return Math.sqrt(sum);
+    }
+
+    private int getNumberForThreshold () {
+        int num = 0;
+        sharedPref = context.getSharedPreferences("numberForThreshold", Context.MODE_PRIVATE);
+        if (sharedPref.contains(login))
+            num = sharedPref.getInt(login, 0);
+        return num;
+    }
+
+    private void setNumberForThreshold (int num) {
+        sharedPref = context.getSharedPreferences("numberForThreshold", Context.MODE_PRIVATE);
+        editor = sharedPref.edit();
+        editor.putInt(login, num);
+        editor.commit();
+    }
+
+    private double getThreshold (String method) {
+        float threshold = 0;
+        sharedPref = context.getSharedPreferences("numberForThreshold", Context.MODE_PRIVATE);
+        if (sharedPref.contains(login+method))
+            threshold = sharedPref.getFloat(login+method, 0);
+        return (double) threshold;
+    }
+
+    private void setThreshold (String method, double threshold) {
+        sharedPref = context.getSharedPreferences("numberForThreshold", Context.MODE_PRIVATE);
+        editor = sharedPref.edit();
+        editor.putFloat(login+method, (float) threshold);
+        editor.commit();
     }
 
     private double countEuclideanDistance (double[] data) {
@@ -105,7 +207,7 @@ public class AnomalyDetector {
         return Math.sqrt(sum);
     }
 
-    public double countLocalOutlierFactor (ArrayList<Double> data) {
+    private double countLocalOutlierFactor (ArrayList<Double> data) {
         int kNeighbours = 3;
         // metric = Euclidean
 
@@ -217,7 +319,7 @@ public class AnomalyDetector {
         return LOF;
     }
 
-    public double countLocalOutlierFactorBySelf (double[] data) {
+    private double countLocalOutlierFactorBySelf (double[] data) {
         int kNeighbours = 3;
         // metric = Euclidean
 
@@ -330,7 +432,7 @@ public class AnomalyDetector {
         return LOF;
     }
 
-    public double countThresholdEuclidean(int percentile) {
+    private double countThresholdEuclidean(int percentile) {
         db = dbHelper.getWritableDatabase();
         String[] columns = new String[] {"password"};
         String selection = "login = ?";
@@ -338,7 +440,7 @@ public class AnomalyDetector {
         c = db.query("passwordData", columns, selection,
                 selectionArgs, null, null, null);
 
-        double threshold = 1000000;
+        double threshold = 0;
         double[] result;
 
         if (c != null) {
@@ -361,9 +463,9 @@ public class AnomalyDetector {
         return threshold;
     }
 
-    public double countThresholdEuclidean() { return countThresholdEuclidean(10); }
+    private double countThresholdEuclidean() { return countThresholdEuclidean(10); }
 
-    public double countThresholdManhattan(int percentile) {
+    private double countThresholdManhattan(int percentile) {
         db = dbHelper.getWritableDatabase();
         String[] columns = new String[] {"password"};
         String selection = "login = ?";
@@ -371,7 +473,7 @@ public class AnomalyDetector {
         c = db.query("passwordData", columns, selection,
                 selectionArgs, null, null, null);
 
-        double threshold = 1000000;
+        double threshold = 0;
         double[] result;
 
         if (c != null) {
@@ -394,11 +496,11 @@ public class AnomalyDetector {
         return threshold;
     }
 
-    public double countThresholdManhattan() { return countThresholdManhattan(10); }
+    private double countThresholdManhattan() { return countThresholdManhattan(10); }
 
-    public double countThresholdLOF() { return countThresholdLOF(10); }
+    private double countThresholdLOF() { return countThresholdLOF(10); }
 
-    public double countThresholdLOF (int percentile) {
+    private double countThresholdLOF (int percentile) {
         db = dbHelper.getWritableDatabase();
         String[] columns = new String[] {"password"};
         String selection = "login = ?";
@@ -406,7 +508,7 @@ public class AnomalyDetector {
         Cursor cAll = db.query("passwordData", columns, selection,
                 selectionArgs, null, null, null);
 
-        double threshold = 1000000;
+        double threshold = 0;
         double[] result;
 
         if (cAll != null) {
@@ -464,6 +566,7 @@ public class AnomalyDetector {
                 }
 
                 result = divideBy(result, numberOfRows);
+                this.numberOfRows = numberOfRows;
             }
             c.close();
         } else

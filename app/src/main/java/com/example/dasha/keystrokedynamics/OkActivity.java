@@ -14,6 +14,7 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
 
     TextView tvOk;
     TextView tvQuestion;
+    TextView tvScores;
     Button btnYes;
     Button btnNo;
 
@@ -23,6 +24,7 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
     String preprocessedData;
     String TAG = "myLog";
     String rawDataString;
+    String scores;
     boolean decision;
 
     String[] rawData;
@@ -39,6 +41,7 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
         Log.d(TAG, "prerocessedData = " + preprocessedData);
         rawDataString = intent.getStringExtra("rawData");
         decision = intent.getBooleanExtra("decision", false);
+        scores = intent.getStringExtra("scores");
 
         btnYes = (Button) findViewById(R.id.btnYes);
         btnNo = (Button) findViewById(R.id.btnNo);
@@ -50,8 +53,10 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
 
         tvOk = (TextView) findViewById(R.id.tvOk);
         tvQuestion = (TextView) findViewById(R.id.tvQuestion);
+        tvScores = (TextView) findViewById(R.id.tvScores);
 
         tvQuestion.setText("Was it " + login + "?");
+        tvScores.setText(scores);
 
         if (! decision)
             tvOk.setText("You type not like " + login + "! SMS is sent to authenticate you");
