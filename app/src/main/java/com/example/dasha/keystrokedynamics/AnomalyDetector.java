@@ -68,7 +68,7 @@ public class AnomalyDetector {
         return Math.sqrt(sum);
     }
 
-    public double countEuclideanDistance (double[] data) {
+    private double countEuclideanDistance (double[] data) {
 
         int sum = 0;
         double centered = 0;
@@ -148,30 +148,23 @@ public class AnomalyDetector {
                                 resultMin2 = resultMin1;
                                 resultMin1 = result;
                             }
-                            min3 = min2;
-                            min2 = value;
+                            else {
+                                min3 = min2;
+                                min2 = value;
 
-                            resultMin3 = resultMin2;
-                            resultMin2 = result;
+                                resultMin3 = resultMin2;
+                                resultMin2 = result;
+                            }
                         }
-                        min3 = value;
+                        else {
+                            min3 = value;
 
-                        resultMin3 = result;
+                            resultMin3 = result;
+                        }
                     }
                 } while (c.moveToNext());
 
-                Log.d(TAG, "min1=" + min1);
-                Log.d(TAG, "min2=" + min2);
-                Log.d(TAG, "min3=" + min3);
-
-                Log.d(TAG, "VECmin1=" + resultMin1);
-                Log.d(TAG, "VECmin2=" + resultMin2);
-                Log.d(TAG, "VECmin3=" + resultMin3);
-
-
                 double selfDensity = (double) kNeighbours / (min1 + min2 + min3);
-
-                Log.d(TAG, "selfDensity" + selfDensity);
 
                 double density1 = 0;
                 double density2 = 0;
@@ -217,8 +210,6 @@ public class AnomalyDetector {
                 density3 = (double) kNeighbours / (values3.get(1) + values3.get(2) + values3.get(3));
 
                 LOF = (density1 + density2 + density3) / (double) kNeighbours / selfDensity;
-                Log.d(TAG, "LOF=" + LOF);
-
             }
             c.close();
         } else
@@ -226,7 +217,7 @@ public class AnomalyDetector {
         return LOF;
     }
 
-    public double countLocalOutlierFactor (double[] data) {
+    public double countLocalOutlierFactorBySelf (double[] data) {
         int kNeighbours = 3;
         // metric = Euclidean
 
@@ -258,7 +249,7 @@ public class AnomalyDetector {
                     passwordVector = c.getString(passwordColIndex);
                     result = fromString(passwordVector);
                     value = countEuclideanDistance(result, data);
-                    if (value < min3) {
+                    if (value < min3 && value != 0) {
                         if (value < min2) {
                             if (value < min1) {
                                 min3 = min2;
@@ -269,21 +260,27 @@ public class AnomalyDetector {
                                 resultMin2 = resultMin1;
                                 resultMin1 = result;
                             }
-                            min3 = min2;
-                            min2 = value;
+                            else {
+                                min3 = min2;
+                                min2 = value;
 
-                            resultMin3 = resultMin2;
-                            resultMin2 = result;
+                                resultMin3 = resultMin2;
+                                resultMin2 = result;
+                            }
                         }
-                        min3 = value;
+                        else {
+                            min3 = value;
 
-                        resultMin3 = result;
+                            resultMin3 = result;
+                        }
                     }
                 } while (c.moveToNext());
 
                 double selfDensity = (double) kNeighbours / (min1 + min2 + min3);
 
-                double sumOfOtherDensities = 0;
+                double density1 = 0;
+                double density2 = 0;
+                double density3 = 0;
 
                 //count densities of neighbours
                 c = db.query("passwordData", columns, selection,
@@ -320,10 +317,11 @@ public class AnomalyDetector {
                 Collections.sort(values2);
                 Collections.sort(values3);
 
-                for (int i = 1; i <= kNeighbours; i++)
-                    sumOfOtherDensities = sumOfOtherDensities + values1.get(i) + values2.get(i) + values3.get(i);
+                density1 = (double) kNeighbours / (values1.get(1) + values1.get(2) + values1.get(3));
+                density2 = (double) kNeighbours / (values2.get(1) + values2.get(2) + values2.get(3));
+                density3 = (double) kNeighbours / (values3.get(1) + values3.get(2) + values3.get(3));
 
-                LOF = sumOfOtherDensities / (double) kNeighbours / selfDensity;
+                LOF = (density1 + density2 + density3) / (double) kNeighbours / selfDensity;
 
             }
             c.close();
@@ -397,6 +395,39 @@ public class AnomalyDetector {
     }
 
     public double countThresholdManhattan() { return countThresholdManhattan(10); }
+
+    public double countThresholdLOF() { return countThresholdLOF(10); }
+
+    public double countThresholdLOF (int percentile) {
+        db = dbHelper.getWritableDatabase();
+        String[] columns = new String[] {"password"};
+        String selection = "login = ?";
+        String[] selectionArgs = new String[] { login };
+        Cursor cAll = db.query("passwordData", columns, selection,
+                selectionArgs, null, null, null);
+
+        double threshold = 1000000;
+        double[] result;
+
+        if (cAll != null) {
+            String passwordVector;
+            ArrayList<Double> values = new ArrayList<>();
+
+            if (cAll.moveToFirst()) {
+                int passwordColIndex = cAll.getColumnIndex("password");
+
+                do {
+                    passwordVector = cAll.getString(passwordColIndex);
+                    result = fromString(passwordVector);
+                    values.add(countLocalOutlierFactorBySelf(result));
+                } while (cAll.moveToNext());
+                threshold = Percentile(values, 100 - percentile);
+            }
+            cAll.close();
+        } else
+            Log.d(TAG, "Cursor is null");
+        return threshold;
+    }
 
     private double Percentile(ArrayList<Double> values, double percentile) {
         Collections.sort(values);

@@ -20,16 +20,6 @@
         android:layout_marginLeft="10pt"
         android:layout_marginRight="5pt"
         android:fontFamily="sans-serif"
-        android:textSize="10pt"
-        android:layout_marginTop="3pt"
-        android:id="@+id/tvScores">
-    </TextView>
-    <TextView
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_marginLeft="10pt"
-        android:layout_marginRight="5pt"
-        android:fontFamily="sans-serif"
         android:textSize="15pt"
         android:layout_marginTop="10pt"
         android:id="@+id/tvQuestion">

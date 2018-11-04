@@ -109,22 +109,30 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
 
                         double thresholdManhattan = detector.countThresholdManhattan();
                         double thresholdEuclidean = detector.countThresholdEuclidean();
-
-                        Log.d(TAG, "ThresManh=" + thresholdManhattan);
-                        Log.d(TAG, "ThresEuclid=" + thresholdEuclidean);
+                        double thresholdLOF = detector.countThresholdLOF();
 
                         double scoreManhattan = detector.countManhattanDistance(preprocessedData);
+                        Log.d(TAG, "ThresManh=" + thresholdManhattan);
                         Log.d(TAG, "scoreManhattan=" + scoreManhattan);
                         double scoreEuclidean = detector.countEuclideanDistance(preprocessedData);
+                        Log.d(TAG, "ThresEuclid=" + thresholdEuclidean);
                         Log.d(TAG, "scoreEuclidean=" + scoreEuclidean);
                         double scoreLOF = detector.countLocalOutlierFactor(preprocessedData);
+                        Log.d(TAG, "thresLOF=" + thresholdLOF);
                         Log.d(TAG, "scoreLOF = " + scoreLOF);
 
-                        intentOk.putExtra("scoreManhattan", scoreManhattan);
-                        intentOk.putExtra("scoreEuclidean", scoreEuclidean);
-                        intentOk.putExtra("prerocessedData", preprocessedData.toString());
+                        boolean trueEuclidean = scoreEuclidean < thresholdEuclidean;
+                        boolean trueManhattan = scoreManhattan < thresholdManhattan;
+                        boolean trueLOF = scoreLOF < thresholdLOF;
 
-                        if (scoreManhattan < thresholdManhattan)
+                        int sum = 0;
+                        sum += trueEuclidean ? 1 : 0;
+                        sum += trueManhattan ? 1 : 0;
+                        sum += trueLOF ? 1 : 0;
+
+                        Log.d(TAG, "SUM = " + sum);
+
+                        if (sum >= 2)
                             intentOk.putExtra("decision", true);
                         else
                             intentOk.putExtra("decision", false);

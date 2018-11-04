@@ -14,7 +14,6 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
 
     TextView tvOk;
     TextView tvQuestion;
-    TextView tvScores;
     Button btnYes;
     Button btnNo;
 
@@ -24,8 +23,6 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
     String preprocessedData;
     String TAG = "myLog";
     String rawDataString;
-    double scoreManhattan = 10000;
-    double scoreEuclidean = 10000;
     boolean decision;
 
     String[] rawData;
@@ -42,8 +39,6 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
         Log.d(TAG, "prerocessedData = " + preprocessedData);
         rawDataString = intent.getStringExtra("rawData");
         decision = intent.getBooleanExtra("decision", false);
-        scoreManhattan = intent.getDoubleExtra("scoreManhattan", 10000);
-        scoreEuclidean = intent.getDoubleExtra("scoreEuclidean", 10000);
 
         btnYes = (Button) findViewById(R.id.btnYes);
         btnNo = (Button) findViewById(R.id.btnNo);
@@ -55,7 +50,6 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
 
         tvOk = (TextView) findViewById(R.id.tvOk);
         tvQuestion = (TextView) findViewById(R.id.tvQuestion);
-        tvScores = (TextView) findViewById(R.id.tvScores);
 
         tvQuestion.setText("Was it " + login + "?");
 
@@ -63,7 +57,6 @@ public class OkActivity extends AppCompatActivity implements View.OnClickListene
             tvOk.setText("You type not like " + login + "! SMS is sent to authenticate you");
         else
             tvOk.setText(login + ", you are now authenticated!");
-        tvScores.setText("scoreManh = " + scoreManhattan + "\nscoreEuclid = " + Math.round(scoreEuclidean));
     }
 
     @Override
