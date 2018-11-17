@@ -225,17 +225,20 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
                     Log.d(TAG, "Preproc finished");
                     Log.d(TAG, "count login = " + countLogin);
                     c.close();
-                }
-
+                }*/
+                /*
                 if (realPassword.equals("delete data")) {
                     //CLEAR
                     Log.d(TAG, "--- Clear mytable: ---");
                     // удаляем все записи
-                    int clearCount = db.delete("passwordData", null, null);
+                    int clearCount = db.delete("passwordData",
+                            "id = 1798 or id = 1799 or id = 1800 or id = 1782 or id = 1783" ,
+                            null);
+                    Log.d(TAG, "deleted rows count = " + clearCount);
+                    clearCount = db.delete("rawData", "id >= 6266 and id <= 6301 or id >= 6074 and id <= 6097", null);
                     Log.d(TAG, "deleted rows count = " + clearCount);
                 }
                 */
-
 
                 break;
             case R.id.btnReturn:
