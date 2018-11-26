@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -80,7 +79,7 @@ public class AnomalyDetector {
     }
 
     public boolean makeDecision (ArrayList<Double> data) {
-        if (numberOfRows - getNumberForThreshold() > 5) {
+        if (numberOfRows - getNumberForThreshold() > 0) {
 
             thresholdLOF = countThresholdLOF();
             thresholdEuclidean = countThresholdEuclidean();
@@ -440,7 +439,7 @@ public class AnomalyDetector {
 
     private double Percentile(ArrayList<Double> values, double percentile) {
         Collections.sort(values);
-        int index = (int)Math.ceil(((double) percentile / (double) 100) * (double) values.size());
+        int index = (int) Math.ceil(((double) percentile / (double) 100) * (double) values.size());
         return values.get(index-1);
     }
 
